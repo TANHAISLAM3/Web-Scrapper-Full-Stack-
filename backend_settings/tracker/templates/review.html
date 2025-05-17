@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background: #f9f9f9;
+        }
+        .search-bar {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+}
+
+    .search-bar input[type="text"] {
+        padding: 10px;
+        width: 300px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff;
+        color: #333;
+        font-size: 16px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .search-bar button {
+        padding: 10px 20px;
+        background-color: #007BFF; /* Blue button */
+        border: none;
+        color: white;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: background-color 0.3s ease;
+    }
+
+    .search-bar button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+    .container {
+            display: flex;
+            gap: 2rem;
+        }
+        .left, .right {
+            flex: 1;
+        }
+        .product-summary {
+        background: #96C9F4;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    }
+     .product-item {
+        background-color: #ffffff;
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+        border-radius: 6px;
+        border: 1px solid #d0e7ff;
+    }
+
+
+          .review-list {
+        background: #fff8e1; /* Light yellow background */
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    }
+
+        .review {
+            border-bottom: 1px solid #ddd;
+            padding: 1rem 0;
+        }
+        .review:last-child {
+            border: none;
+        }
+        .rating {
+            color: #ffa500;
+            font-weight: bold;
+        }
+        .product-item {
+            margin-bottom: 1rem;
+        }
+        .product-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Retalk</h1>
+
+    <form method="get" action="{% url 'review_search' %}" class="search-bar">
+        <input type="text" name="q" placeholder="Search reviews..." value="{{ query }}" />
+        <button type="submit">Search</button>
+    </form>
+
+    <div class="container">
+        <!-- Left Column: Reviews -->
+        <div class="left">
+            <div class="review-list">
+                <h2>Reviews{% if query %} matching "{{ query }}"{% endif %}</h2>
+                {% for review in reviews %}
+                    <div class="review">
+                        <h3>{{ review.title }} <span class="rating">{{ review.rating }}⭐</span></h3>
+                        <p><em>By {{ review.name }}, on {{ review.date }}</em></p>
+                        <p><strong>Product:</strong> {{ review.product.name }}</p>
+                        <p>{{ review.text|linebreaksbr }}</p>
+                    </div>
+                {% empty %}
+                    <p>No reviews found.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Column: Top Products -->
+        <div class="right">
+            <div class="product-summary">
+                <h2>Top Products{% if query %} for "{{ query }}"{% endif %}</h2>
+                {% for product in top_products %}
+                    <div class="product-item">
+                        <div class="product-name">{{ product.name }}</div>
+                        <div>
+                            Keyword Mentions: {{ product.keyword_frequency }}<br />
+                            Avg Rating: {{ product.avg_rating|default:"N/A"|floatformat:1 }}<br />
+                            Total Reviews: {{ product.total_reviews }}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No products found.</p>
+                {% endfor %}
+                <hr />
+                <p><strong>Total Reviews:</strong> {{ total_reviews }}</p>
+                <p><strong>Average Rating (all reviews):</strong> {{ avg_rating_all|floatformat:1 }}</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
