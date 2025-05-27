@@ -3,9 +3,6 @@ import sys
 import django
 from decimal import Decimal
 import re
-
-
-# Set up Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend_settings.settings')
 
 # Add the project root directory (the parent of 'backend_settings' folder) to sys.path
@@ -35,7 +32,6 @@ import time
 
 # Set up logging for better visibility
 logging.basicConfig(level=logging.INFO, format='%(message)s')
-# Set up the driver
 driver = webdriver.Chrome()
 base_url = "https://www.yesstyle.com/en/beauty-skin-care/list.html/bcc.15544_bpt.46"
 
@@ -48,7 +44,6 @@ def create_page_url(page_num):
 
 
 def wait_for_products():
-    """Wait for the presence of product elements in the DOM."""
     try:
         WebDriverWait(driver, 15).until(
             EC.presence_of_all_elements_located((By.CLASS_NAME, "itemContainer"))
@@ -70,12 +65,10 @@ def scroll_page():
 
 
 def get_product_containers():
-    """Dynamically fetch product containers."""
     return driver.find_elements(By.CLASS_NAME, "itemContainer")
 
 
 def retry_on_stale(func, *args, retries=3, **kwargs):
-    """Retry a function on encountering StaleElementReferenceException."""
     for attempt in range(retries):
         try:
             return func(*args, **kwargs)
@@ -148,11 +141,11 @@ def extract_product_data():
                 logging.warning(f"Stale element for product {i + 1}: {stale_err}")
                 continue
             except Exception as e:
-                logging.error(f"❌ Unexpected error on product {i + 1}: {e}")
+                logging.error(f"Unexpected error on product {i + 1}: {e}")
                 continue
 
     except Exception as e:
-        logging.error(f"💥 Error during extraction: {e}")
+        logging.error(f"Error during extraction: {e}")
 
     return products_extracted
 
@@ -188,7 +181,7 @@ def extract_reviews_from_product_page():
         review_boxes = driver.find_elements(By.CLASS_NAME, "customerreviews_reviewCard__4V1EE")
         logging.info(f"Found {len(review_boxes)} review containers. Extracting up to 20...")
 
-        for box in review_boxes[:20]:  # ✅ Slice to max 20
+        for box in review_boxes[:20]:
             try:
                 name_el = box.find_element(By.CLASS_NAME, "customerreviews_header__UJ2Qd")
                 name = name_el.text.strip().split('\n')[-1]
@@ -204,24 +197,10 @@ def extract_reviews_from_product_page():
                 except:
                     rating = None
 
-                # ✅ Sentiment analysis
-                blob = TextBlob(text)
-                polarity = blob.sentiment.polarity
-                sentiment = "positive" if polarity > 0 else "negative" if polarity < 0 else "neutral"
 
-                if title and text:
-                    reviews.append({
-                        "name": name,
-                        "title": title,
-                        "text": text,
-                        "date": date,
-                        "rating": rating,
-                        "sentiment": sentiment
-                    })
 
                 if len(reviews) >= 20:
-                    break# ✅ Stop collecting once 20 are reached
-
+                    break
             except Exception as e:
                 logging.warning(f"Error parsing a review: {e}")
                 continue
@@ -256,9 +235,8 @@ def save_to_database(extracted_products):
         except Exception as e:
             logging.error(f"Failed to save product {product_data['title']}: {e}")
 
-# Main loop to navigate through all pages dynamically
-# Main loop to navigate through all pages dynamically
-for page_num in range(1):  # Adjust range as needed
+
+for page_num in range(1):
     try:
         logging.info(f"Loading page {page_num}")
         url = create_page_url(page_num)  # Create dynamic URL
@@ -269,13 +247,11 @@ for page_num in range(1):  # Adjust range as needed
         # Extract product data from the current page
         extracted_products = extract_product_data()
         logging.info(f"Extracted {len(extracted_products)} products from page {page_num}")
-
-        # ✅ Print the extracted data including full reviews
         for product in extracted_products:
-            print(f"\n📦 Product: {product['title']}")
-            print(f"💰 Price: {product['price']}")
-            print(f"🗳️ Review Count: {product['review']}")
-            print(f"🧾 Full Reviews ({len(product['full_reviews'])}):")
+            print(f"\n Product: {product['title']}")
+            print(f" Price: {product['price']}")
+            print(f" Review Count: {product['review']}")
+            print(f"Full Reviews ({len(product['full_reviews'])}):")
             for review in product['full_reviews']:
                 print(f"  📝 {review['title']}: {review['text']}")
             print("=" * 60)
